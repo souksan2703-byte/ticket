@@ -29,17 +29,9 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     }
 
     try {
-      final response = await ApiConfig.postJson('Check_Ticket', {
-        'tranid': tranid,
+      final response = await ApiConfig.postJson('check-ticket', {
+        'code': tranid,
       });
-
-      if (response.statusCode != 200) {
-        _showResultDialog(
-          '⚠️ Error',
-          'Request failed (HTTP ${response.statusCode})',
-        );
-        return;
-      }
 
       final decoded = jsonDecode(response.body);
       if (decoded is! Map<String, dynamic>) {
@@ -47,18 +39,24 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         return;
       }
 
-      final data = ApiConfig.parseDataMap(decoded);
-      if (ApiConfig.isSuccess(decoded['status']) && data != null) {
+      final result = decoded['result']?.toString();
+      final ticket = decoded['ticket'];
+
+      // ขายแล้ว ยังไม่รับตั๋ว -> ไปหน้ารายละเอียดให้กดยืนยันรับตั๋วต่อ
+      if (result == 'ok' && ticket is Map) {
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => TicketDetailScreen(data: data),
+            builder: (_) => TicketDetailScreen(
+              data: Map<String, dynamic>.from(ticket),
+            ),
           ),
         );
         return;
       }
 
+      // invalid / not_sold / already_used / error -> แจ้งเตือนแล้วกลับหน้าแรก
       _showResultDialog(
         'message!!!',
         decoded['message']?.toString() ?? 'ບໍ່ສາມາດກວດສອບຂໍ້ມູນ',

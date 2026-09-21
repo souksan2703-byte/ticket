@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:ticket/api_config.dart';
 
 import 'ticket_not_page.dart';
@@ -30,9 +31,9 @@ class _TicketPageState extends State<TicketPage> {
     });
 
     try {
-      final res = await ApiConfig.postEmpty('Get_Logo').timeout(
-        const Duration(seconds: 20),
-      );
+      final res = await http
+          .get(ApiConfig.url('events'))
+          .timeout(const Duration(seconds: 20));
 
       if (res.statusCode != 200) {
         setState(() {
@@ -42,18 +43,17 @@ class _TicketPageState extends State<TicketPage> {
       }
 
       final body = jsonDecode(res.body);
-      if (body is! Map || body['status'] != true || body['data'] is! List) {
+      if (body is! List) {
         setState(() {
           _error = 'Invalid response format.';
         });
         return;
       }
 
-      final List data = body['data'];
       final items = <_TicketItem>[];
-      for (final e in data) {
+      for (final e in body) {
         if (e is Map) {
-          final desc = (e['Description'] ?? e['type'] ?? '')
+          final desc = (e['Title'] ?? e['Description'] ?? '')
               .toString()
               .trim();
           final id = e['tickid'];
@@ -73,7 +73,7 @@ class _TicketPageState extends State<TicketPage> {
 
       setState(() => _items = items);
     } catch (e) {
-      setState(() => _error = 'Error: $e\nURL: ${ApiConfig.url('Get_Licket_Not')}');
+      setState(() => _error = 'Error: $e');
     } finally {
       setState(() => _isLoading = false);
     }

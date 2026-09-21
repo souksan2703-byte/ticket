@@ -5,7 +5,8 @@ import 'package:http/http.dart' as http;
 class ApiConfig {
   ApiConfig._();
 
-  static const String baseUrl = 'https://gateway.ltcdev.la/WhatApp/api';
+  // TODO: ถ้า IP ของคอมที่รัน backend เปลี่ยน (เช่น ต่อ WiFi/Hotspot ใหม่) ต้องมาแก้ตรงนี้ด้วย
+  static const String baseUrl = 'http://172.20.10.2:5000/api/public';
 
   static Uri url(String path) => Uri.parse('$baseUrl/$path');
 
@@ -62,6 +63,9 @@ class ApiConfig {
     final payload = Map<String, dynamic>.from(data);
     if (payload['tranid'] is String) {
       payload['tranid'] = normalizeTranId(payload['tranid'] as String);
+    }
+    if (payload['code'] is String) {
+      payload['code'] = normalizeTranId(payload['code'] as String);
     }
 
     return http.post(
