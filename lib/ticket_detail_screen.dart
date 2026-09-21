@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:ticket/api_config.dart';
 import 'package:ticket/successScreen.dart';
@@ -14,23 +16,30 @@ class TicketDetailScreen extends StatefulWidget {
 class _TicketDetailScreenState extends State<TicketDetailScreen> {
   bool _isLoading = false;
 
-  Future<void> _receiveTicket(String tranid) async {
+  Future<void> _receiveTicket(String code) async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final response = await ApiConfig.postJson('Get_Ticket', {
-        'tranid': tranid,
+      final response = await ApiConfig.postJson('receive-ticket', {
+        'code': code,
       });
-      if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      final result = decoded is Map ? decoded['result']?.toString() : null;
+
+      if (result == 'success') {
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const SuccessScreen()),
         );
       } else {
+        final message = decoded is Map
+            ? (decoded['message']?.toString() ?? 'ยืนยันรับตั๋วไม่สำเร็จ')
+            : 'ยืนยันรับตั๋วไม่สำเร็จ';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('error: ${response.statusCode}')),
+          SnackBar(content: Text(message)),
         );
       }
     } catch (e) {
@@ -38,20 +47,28 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         SnackBar(content: Text('error: $e')),
       );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final data = widget.data;
-    final fields = data.entries.toList();
+    // แสดงเฉพาะฟิลด์ที่มีประโยชน์กับพนักงานหน้างาน (ตัดฟิลด์ที่ไม่จำเป็นออก)
+    final fields = <MapEntry<String, dynamic>>[
+      MapEntry('ລະຫັດບັດ', data['code'] ?? '-'),
+      MapEntry('ງານ', data['eventName'] ?? '-'),
+      MapEntry('ເຈົ້າຂອງບັດ', data['owner'] ?? '-'),
+    ];
 
-    final bool showReceiveButton =
-        data['ສະຖານະບັດ'] == true && data['ສະຖານະການຮັບບັດ'] == false;
-    final String tranid = data['ລະຫັດບັດ']?.toString() ?? '';
+    // มาถึงหน้านี้ได้แปลว่า check-ticket ตอบ result 'ok' แล้ว (ขายแล้ว ยังไม่รับ)
+    // จึงแสดงปุ่มยืนยันรับตั๋วเสมอ
+    const bool showReceiveButton = true;
+    final String code = data['code']?.toString() ?? '';
 
     return Scaffold(
       appBar: AppBar(centerTitle: true, title: const Text('ລາຍລະອຽດບັດ')),
@@ -63,15 +80,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               itemCount: fields.length,
               itemBuilder: (context, index) {
                 final key = fields[index].key;
-                dynamic value = fields[index].value;
-
-                if (key == 'ສະຖານະບັດ') {
-                  value = value == true ? 'ຊື້ແລ້ວ' : 'ຍັງບໍ່ຊື້';
-                } else if (key == 'ສະຖານະການຮັບບັດ') {
-                  value = value == true ? 'ຮັບບັດແລ້ວ' : 'ລໍຖ້າການຮັບບັດ';
-                }
-
-                value = value.toString();
+                final String value = fields[index].value.toString();
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
@@ -125,7 +134,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                 ElevatedButton(
                                   onPressed: () {
                                     Navigator.pop(context);
-                                    _receiveTicket(tranid);
+                                    _receiveTicket(code);
                                   },
                                   child: const Text('ຢືນຢັນ'),
                                 ),
