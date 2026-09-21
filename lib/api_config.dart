@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 class ApiConfig {
   ApiConfig._();
 
-  // TODO: ถ้า IP ของคอมที่รัน backend เปลี่ยน (เช่น ต่อ WiFi/Hotspot ใหม่) ต้องมาแก้ตรงนี้ด้วย
   static const String baseUrl = 'http://172.20.10.2:5000/api/public';
 
   static Uri url(String path) => Uri.parse('$baseUrl/$path');
