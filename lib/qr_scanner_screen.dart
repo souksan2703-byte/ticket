@@ -42,7 +42,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       final result = decoded['result']?.toString();
       final ticket = decoded['ticket'];
 
-      // ขายแล้ว ยังไม่รับตั๋ว -> ไปหน้ารายละเอียดให้กดยืนยันรับตั๋วต่อ
       if (result == 'ok' && ticket is Map) {
         if (!mounted) return;
         Navigator.pushReplacement(
@@ -56,7 +55,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         return;
       }
 
-      // invalid / not_sold / already_used / error -> แจ้งเตือนแล้วกลับหน้าแรก
       _showResultDialog(
         'message!!!',
         decoded['message']?.toString() ?? 'ບໍ່ສາມາດກວດສອບຂໍ້ມູນ',

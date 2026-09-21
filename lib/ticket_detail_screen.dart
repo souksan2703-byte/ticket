@@ -58,15 +58,13 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final data = widget.data;
-    // แสดงเฉพาะฟิลด์ที่มีประโยชน์กับพนักงานหน้างาน (ตัดฟิลด์ที่ไม่จำเป็นออก)
+
     final fields = <MapEntry<String, dynamic>>[
       MapEntry('ລະຫັດບັດ', data['code'] ?? '-'),
       MapEntry('ງານ', data['eventName'] ?? '-'),
       MapEntry('ເຈົ້າຂອງບັດ', data['owner'] ?? '-'),
     ];
 
-    // มาถึงหน้านี้ได้แปลว่า check-ticket ตอบ result 'ok' แล้ว (ขายแล้ว ยังไม่รับ)
-    // จึงแสดงปุ่มยืนยันรับตั๋วเสมอ
     const bool showReceiveButton = true;
     final String code = data['code']?.toString() ?? '';
 
