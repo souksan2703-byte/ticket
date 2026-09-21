@@ -36,8 +36,8 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         );
       } else {
         final message = decoded is Map
-            ? (decoded['message']?.toString() ?? 'ยืนยันรับตั๋วไม่สำเร็จ')
-            : 'ยืนยันรับตั๋วไม่สำเร็จ';
+            ? (decoded['message']?.toString() ?? 'ຢືນຢັນຮັບຕົ໋ວບໍ່ສຳເລັດ')
+            : 'ຢືນຢັນຮັບຕົ໋ວບໍ່ສຳເລັດ';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message)),
         );

@@ -69,6 +69,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   void _showResultDialog(String title, String message) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (_) => AlertDialog(
         title: Text(title),
         content: Text(message),
