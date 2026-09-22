@@ -3,83 +3,58 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:ticket/api_config.dart';
 
-class TicketNotPage extends StatelessWidget {
-  final int tickid;
-  const TicketNotPage({super.key, required this.tickid});
-
-  @override
-  Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('Ticket $tickid'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'ຍັງບໍ່ຮັບບັດ'),
-              Tab(text: 'ຮັບບັດແລ້ວ'),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          children: [
-            _BuyerList(tickid: tickid, endpoint: 'tickets-not-received'),
-            _BuyerList(tickid: tickid, endpoint: 'tickets-received'),
-          ],
-        ),
-      ),
-    );
-  }
+class _BuyerItem {
+  final String buyer;
+  final String status;
+  _BuyerItem({required this.buyer, required this.status});
 }
 
-class _BuyerList extends StatefulWidget {
+class TicketNotPage extends StatefulWidget {
   final int tickid;
-  final String endpoint;
-  const _BuyerList({required this.tickid, required this.endpoint});
+  final String? eventTitle;
+  const TicketNotPage({super.key, required this.tickid, this.eventTitle});
 
   @override
-  State<_BuyerList> createState() => _BuyerListState();
+  State<TicketNotPage> createState() => _TicketNotPageState();
 }
 
-class _BuyerListState extends State<_BuyerList> {
-  bool _isLoading = true;
-  String? _error;
-  List<_BuyerItem> _items = [];
+class _TicketNotPageState extends State<TicketNotPage> {
+  bool _isLoadingNotReceived = true;
+  bool _isLoadingReceived = true;
+  String? _notReceivedError;
+  String? _receivedError;
+  List<_BuyerItem> _notReceivedItems = [];
+  List<_BuyerItem> _receivedItems = [];
 
   @override
   void initState() {
     super.initState();
-    _fetch();
+    // ดึงข้อมูลทั้ง 2 แท็บพร้อมกันตั้งแต่เปิดหน้ามา ไม่ต้องรอสลับแท็บถึงจะโหลด
+    _fetchNotReceived();
+    _fetchReceived();
   }
 
-  Future<void> _fetch() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-      _items = [];
-    });
-
+  Future<List<_BuyerItem>?> _fetchList(String endpoint, void Function(String) onError) async {
     try {
       final uri = ApiConfig.url(
-        widget.endpoint,
+        endpoint,
       ).replace(queryParameters: {'tickid': widget.tickid.toString()});
 
       final res = await http.get(uri).timeout(const Duration(seconds: 20));
 
       if (res.statusCode != 200) {
-        setState(() => _error = 'Request failed (HTTP ${res.statusCode}). Please try again.');
-        return;
+        onError('Request failed (HTTP ${res.statusCode}). Please try again.');
+        return null;
       }
 
       final body = jsonDecode(res.body);
       if (body is! Map || body['status'] != true || body['data'] is! List) {
-        setState(() => _error = 'Invalid response format.');
-        return;
+        onError('Invalid response format.');
+        return null;
       }
 
       final List data = body['data'];
       final items = <_BuyerItem>[];
-
       for (final e in data) {
         if (e is Map) {
           final buyer  = (e['owner'] ?? '').toString().trim();
@@ -89,25 +64,65 @@ class _BuyerListState extends State<_BuyerList> {
           }
         }
       }
-
-      if (items.isEmpty) {
-        setState(() => _error = 'No data found.');
-        return;
-      }
-
-      setState(() => _items = items);
+      return items;
     } catch (e) {
-      setState(() => _error = 'Error: $e');
-    } finally {
-      setState(() => _isLoading = false);
+      onError('Error: $e');
+      return null;
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Future<void> _fetchNotReceived() async {
+    setState(() {
+      _isLoadingNotReceived = true;
+      _notReceivedError = null;
+    });
+    final items = await _fetchList(
+      'tickets-not-received',
+      (msg) => _notReceivedError = msg,
+    );
+    if (!mounted) return;
+    setState(() {
+      _isLoadingNotReceived = false;
+      if (items != null) {
+        _notReceivedItems = items;
+        if (items.isEmpty) _notReceivedError = 'No data found.';
+      }
+    });
+  }
+
+  Future<void> _fetchReceived() async {
+    setState(() {
+      _isLoadingReceived = true;
+      _receivedError = null;
+    });
+    final items = await _fetchList(
+      'tickets-received',
+      (msg) => _receivedError = msg,
+    );
+    if (!mounted) return;
+    setState(() {
+      _isLoadingReceived = false;
+      if (items != null) {
+        _receivedItems = items;
+        if (items.isEmpty) _receivedError = 'No data found.';
+      }
+    });
+  }
+
+  String _tabLabel(String base, bool isLoading, List<_BuyerItem> items) {
+    if (isLoading) return base;
+    return '$base (${items.length})';
+  }
+
+  Widget _buildList(
+    bool isLoading,
+    String? error,
+    List<_BuyerItem> items,
+    Future<void> Function() onRefresh,
+  ) {
     return RefreshIndicator(
-      onRefresh: _fetch,
-      child: _isLoading
+      onRefresh: onRefresh,
+      child: isLoading
           ? const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -118,14 +133,14 @@ class _BuyerListState extends State<_BuyerList> {
                 ],
               ),
             )
-          : _error != null
+          : error != null
               ? ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                    Text(_error!, style: const TextStyle(color: Colors.red)),
+                    Text(error, style: const TextStyle(color: Colors.red)),
                     const SizedBox(height: 12),
                     ElevatedButton.icon(
-                      onPressed: _fetch,
+                      onPressed: onRefresh,
                       icon: const Icon(Icons.refresh),
                       label: const Text('Retry'),
                     ),
@@ -133,10 +148,10 @@ class _BuyerListState extends State<_BuyerList> {
                 )
               : ListView.separated(
                   padding: const EdgeInsets.all(12),
-                  itemCount: _items.length,
+                  itemCount: items.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
-                    final it = _items[index];
+                    final it = items[index];
                     return Card(
                       elevation: 1.5,
                       shape: RoundedRectangleBorder(
@@ -155,10 +170,32 @@ class _BuyerListState extends State<_BuyerList> {
                 ),
     );
   }
-}
 
-class _BuyerItem {
-  final String buyer;
-  final String status;
-  _BuyerItem({required this.buyer, required this.status});
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            (widget.eventTitle != null && widget.eventTitle!.isNotEmpty)
+                ? widget.eventTitle!
+                : 'Ticket ${widget.tickid}',
+          ),
+          bottom: TabBar(
+            tabs: [
+              Tab(text: _tabLabel('ຍັງບໍ່ຮັບບັດ', _isLoadingNotReceived, _notReceivedItems)),
+              Tab(text: _tabLabel('ຮັບບັດແລ້ວ', _isLoadingReceived, _receivedItems)),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            _buildList(_isLoadingNotReceived, _notReceivedError, _notReceivedItems, _fetchNotReceived),
+            _buildList(_isLoadingReceived, _receivedError, _receivedItems, _fetchReceived),
+          ],
+        ),
+      ),
+    );
+  }
 }

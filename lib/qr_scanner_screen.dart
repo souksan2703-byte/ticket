@@ -42,6 +42,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       final result = decoded['result']?.toString();
       final ticket = decoded['ticket'];
 
+      // ຂາຍແລ້ວ ຍັງບໍ່ຮັບຕົ໋ວ -> ໄປໜ້າລາຍລະອຽດໃຫ້ກົດຢືນຢັນຮັບຕົ໋ວຕໍ່
       if (result == 'ok' && ticket is Map) {
         if (!mounted) return;
         Navigator.pushReplacement(
@@ -55,6 +56,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         return;
       }
 
+      // invalid / not_sold / already_used / error -> ແຈ້ງເຕືອນແລ້ວກັບໜ້າທຳອິດ
       _showResultDialog(
         'message!!!',
         decoded['message']?.toString() ?? 'ບໍ່ສາມາດກວດສອບຂໍ້ມູນ',
@@ -69,7 +71,11 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
-        title: Text(title),
+        title: Text(
+          title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.red),
+        ),
         content: Text(message),
         actions: [
           TextButton(
