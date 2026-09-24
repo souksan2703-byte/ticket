@@ -16,36 +16,6 @@ class TicketDetailScreen extends StatefulWidget {
 class _TicketDetailScreenState extends State<TicketDetailScreen> {
   bool _isLoading = false;
 
-  // ລາຍໄອຄອນຈາງໆ ເປັນທຳລາຍນ້ຳພື້ນຫຼັງຂອງກາດ (ຄືກັບຕົວຢ່າງໃບບິນ)
-  Widget _buildWatermark() {
-    const icons = [
-      Icons.confirmation_num_outlined,
-      Icons.qr_code_2,
-      Icons.event_seat_outlined,
-      Icons.local_activity_outlined,
-      Icons.celebration_outlined,
-    ];
-    return IgnorePointer(
-      child: Opacity(
-        opacity: 0.05,
-        child: Transform.rotate(
-          angle: -0.35, // ເອນລາຍຂຶ້ນໄປທາງມຸມຂວາເທິງ
-          child: Wrap(
-            spacing: 36,
-            runSpacing: 36,
-            children: List.generate(18, (i) {
-              return Icon(
-                icons[i % icons.length],
-                size: 56,
-                color: Colors.black,
-              );
-            }),
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _receiveTicket(String code) async {
     setState(() {
       _isLoading = true;
@@ -110,7 +80,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color.fromARGB(255, 192, 21, 21), Color(0xFF0D47A1)],
+            colors: [Color(0xFFD11C21), Color(0xFF0D47A1)],
           ),
         ),
         child: SafeArea(
@@ -143,6 +113,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     children: [
                       Container(
                         width: double.infinity,
+                        padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
@@ -154,76 +125,65 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                             ),
                           ],
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Stack(
-                            children: [
-                              Positioned.fill(child: _buildWatermark()),
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
-                                child: Column(
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFE8F5E9),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.confirmation_num_outlined,
+                                color: Color(0xFF2E7D32),
+                                size: 34,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            const Text(
+                              'ພົບຂໍ້ມູນບັດ',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            const Divider(height: 1),
+                            const SizedBox(height: 8),
+                            ...fields.map((entry) {
+                              final value = entry.value.toString();
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Container(
-                                      width: 64,
-                                      height: 64,
-                                      decoration: const BoxDecoration(
-                                        color: Color(0xFFE8F5E9),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.confirmation_num_outlined,
-                                        color: Color(0xFF2E7D32),
-                                        size: 34,
+                                    Text(
+                                      entry.key,
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.black54,
                                       ),
                                     ),
-                                    const SizedBox(height: 14),
-                                    const Text(
-                                      'ພົບຂໍ້ມູນບັດ',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    const Divider(height: 1),
-                                    const SizedBox(height: 8),
-                                    ...fields.map((entry) {
-                                      final value = entry.value.toString();
-                                      return Padding(
-                                        padding: const EdgeInsets.symmetric(vertical: 10),
-                                        child: Row(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              entry.key,
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                                color: Colors.black54,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            Flexible(
-                                              child: Text(
-                                                value,
-                                                textAlign: TextAlign.right,
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Colors.black87,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
+                                    const SizedBox(width: 16),
+                                    Flexible(
+                                      child: Text(
+                                        value,
+                                        textAlign: TextAlign.right,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black87,
                                         ),
-                                      );
-                                    }),
+                                      ),
+                                    ),
                                   ],
                                 ),
-                              ),
-                            ],
-                          ),
+                              );
+                            }),
+                          ],
                         ),
                       ),
                     ],
