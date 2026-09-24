@@ -102,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: TextStyle(color: Colors.white),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepOrange,
+                backgroundColor: const Color(0xFFD11C21),
                 elevation: 2,
                 textStyle: const TextStyle(
                   fontSize: 18,
@@ -150,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   _logoError!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.red),
+                  style: const TextStyle(color: Color(0xFFD11C21)),
                 ),
               ] else if (_logoBytes != null) ...[
                 const Text(

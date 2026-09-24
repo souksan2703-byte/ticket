@@ -16,6 +16,36 @@ class TicketDetailScreen extends StatefulWidget {
 class _TicketDetailScreenState extends State<TicketDetailScreen> {
   bool _isLoading = false;
 
+  // ລາຍໄອຄອນຈາງໆ ເປັນທຳລາຍນ້ຳພື້ນຫຼັງຂອງກາດ (ຄືກັບຕົວຢ່າງໃບບິນ)
+  Widget _buildWatermark() {
+    const icons = [
+      Icons.confirmation_num_outlined,
+      Icons.qr_code_2,
+      Icons.event_seat_outlined,
+      Icons.local_activity_outlined,
+      Icons.celebration_outlined,
+    ];
+    return IgnorePointer(
+      child: Opacity(
+        opacity: 0.05,
+        child: Transform.rotate(
+          angle: -0.35, // ເອນລາຍຂຶ້ນໄປທາງມຸມຂວາເທິງ
+          child: Wrap(
+            spacing: 36,
+            runSpacing: 36,
+            children: List.generate(18, (i) {
+              return Icon(
+                icons[i % icons.length],
+                size: 56,
+                color: Colors.black,
+              );
+            }),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _receiveTicket(String code) async {
     setState(() {
       _isLoading = true;
@@ -58,106 +88,203 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final data = widget.data;
-
+    // ສະແດງສະເພາະຟິວທີ່ມີປະໂຫຍດກັບພະນັກງານໜ້າງານ (ຕັດຟິວທີ່ບໍ່ຈຳເປັນອອກ)
     final fields = <MapEntry<String, dynamic>>[
       MapEntry('ລະຫັດບັດ', data['code'] ?? '-'),
       MapEntry('ງານ', data['eventName'] ?? '-'),
+      MapEntry('ວັນທີ/ເວລາ', data['eventDate'] ?? '-'),
+      MapEntry('ສະຖານທີ່', data['eventLocation'] ?? '-'),
       MapEntry('ເຈົ້າຂອງບັດ', data['owner'] ?? '-'),
     ];
 
+    // ມາຮອດໜ້ານີ້ໄດ້ໝາຍວ່າ check-ticket ຕອບ result 'ok' ແລ້ວ (ຂາຍແລ້ວ ຍັງບໍ່ຮັບ)
+    // ຈຶ່ງສະແດງປຸ່ມຢືນຢັນຮັບຕົ໋ວສະເໝີ
     const bool showReceiveButton = true;
     final String code = data['code']?.toString() ?? '';
 
     return Scaffold(
-      appBar: AppBar(centerTitle: true, title: const Text('ລາຍລະອຽດບັດ')),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: fields.length,
-              itemBuilder: (context, index) {
-                final key = fields[index].key;
-                final String value = fields[index].value.toString();
-
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          '$key:',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color.fromARGB(255, 192, 21, 21), Color(0xFF0D47A1)],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // ແຖບເທິງ: ປຸ່ມກັບຄືນ
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    ),
+                    const Text(
+                      'ລາຍລະອຽດບັດ',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
                       ),
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          value,
-                          style: const TextStyle(fontSize: 17),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 16,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Stack(
+                            children: [
+                              Positioned.fill(child: _buildWatermark()),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      width: 64,
+                                      height: 64,
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFFE8F5E9),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.confirmation_num_outlined,
+                                        color: Color(0xFF2E7D32),
+                                        size: 34,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 14),
+                                    const Text(
+                                      'ພົບຂໍ້ມູນບັດ',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    const Divider(height: 1),
+                                    const SizedBox(height: 8),
+                                    ...fields.map((entry) {
+                                      final value = entry.value.toString();
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 10),
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              entry.key,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                color: Colors.black54,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Flexible(
+                                              child: Text(
+                                                value,
+                                                textAlign: TextAlign.right,
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
-                );
-              },
-            ),
-          ),
-          if (showReceiveButton)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: _isLoading
-                      ? null
-                      : () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('ຢືນຢັນ'),
-                              content:
-                                  const Text('ທ່ານຕ້ອງການຮັບບັດນີ້ແທ້ບໍ?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('ຍົກເລີກ'),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    _receiveTicket(code);
-                                  },
-                                  child: const Text('ຢືນຢັນ'),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.black,
-                    textStyle: const TextStyle(fontSize: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.black),
-                        )
-                      : const Text('ຮັບບັດ'),
                 ),
               ),
-            ),
-        ],
+              if (showReceiveButton)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('ຢືນຢັນ'),
+                                  content:
+                                      const Text('ທ່ານຕ້ອງການຮັບບັດນີ້ແທ້ບໍ?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('ຍົກເລີກ'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        _receiveTicket(code);
+                                      },
+                                      child: const Text('ຢືນຢັນ'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFD11C21),
+                        foregroundColor: Colors.white,
+                        textStyle: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            )
+                          : const Text('ຮັບບັດ'),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
