@@ -35,17 +35,18 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           MaterialPageRoute(builder: (_) => const SuccessScreen()),
         );
       } else {
-        final message = decoded is Map
-            ? (decoded['message']?.toString() ?? 'ຢືນຢັນຮັບຕົ໋ວບໍ່ສຳເລັດ')
-            : 'ຢືນຢັນຮັບຕົ໋ວບໍ່ສຳເລັດ';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        final message =
+            decoded is Map
+                ? (decoded['message']?.toString() ?? 'ຢືນຢັນຮັບຕົ໋ວບໍ່ສຳເລັດ')
+                : 'ຢືນຢັນຮັບຕົ໋ວບໍ່ສຳເລັດ';
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('error: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -55,6 +56,63 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     }
   }
 
+  String _formatEventDateTime(dynamic raw) {
+    final value = raw?.toString().trim() ?? '';
+
+    if (value.isEmpty) return '-';
+
+    String formattedDate = '';
+
+    // ຮອງຮັບ YYYY-MM-DD ແລະ YYYY/MM/DD
+    final isoDate = RegExp(
+      r'(\d{4})[-/](\d{1,2})[-/](\d{1,2})',
+    ).firstMatch(value);
+
+    if (isoDate != null) {
+      final year = isoDate.group(1)!;
+      final month = isoDate.group(2)!.padLeft(2, '0');
+      final day = isoDate.group(3)!.padLeft(2, '0');
+
+      formattedDate = '$day/$month/$year';
+    } else {
+      // ຮອງຮັບ DD/MM/YYYY
+      final dmyDate = RegExp(r'(\d{1,2})/(\d{1,2})/(\d{4})').firstMatch(value);
+
+      if (dmyDate != null) {
+        final day = dmyDate.group(1)!.padLeft(2, '0');
+        final month = dmyDate.group(2)!.padLeft(2, '0');
+        final year = dmyDate.group(3)!;
+
+        formattedDate = '$day/$month/$year';
+      }
+    }
+
+    // ດຶງເວລາ HH:mm ຫຼື HH:mm:ss
+    final times =
+        RegExp(r'\b(\d{1,2}):(\d{2})(?::\d{2})?\b').allMatches(value).toList();
+
+    String formatTime(RegExpMatch match) {
+      final hour = match.group(1)!.padLeft(2, '0');
+      final minute = match.group(2)!;
+      return '$hour:$minute';
+    }
+
+    // ຖ້າບໍ່ສາມາດອ່ານວັນທີໄດ້
+    // ໃຫ້ສະແດງຂໍ້ມູນເດີມ ແທນການສ້າງຄ່າຜິດ
+    if (formattedDate.isEmpty) return value;
+
+    if (times.length >= 2) {
+      return '$formattedDate '
+          '${formatTime(times[0])} - ${formatTime(times[1])}';
+    }
+
+    if (times.length == 1) {
+      return '$formattedDate ${formatTime(times[0])}';
+    }
+
+    return formattedDate;
+  }
+
   @override
   Widget build(BuildContext context) {
     final data = widget.data;
@@ -62,7 +120,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     final fields = <MapEntry<String, dynamic>>[
       MapEntry('ລະຫັດບັດ', data['code'] ?? '-'),
       MapEntry('ງານ', data['eventName'] ?? '-'),
-      MapEntry('ວັນທີ/ເວລາ', data['eventDate'] ?? '-'),
+      MapEntry('ວັນທີ/ເວລາ', _formatEventDateTime(data['eventDate'])),
       MapEntry('ສະຖານທີ່', data['eventLocation'] ?? '-'),
       MapEntry('ເຈົ້າຂອງບັດ', data['owner'] ?? '-'),
     ];
@@ -108,7 +166,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               ),
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
                   child: Column(
                     children: [
                       Container(
@@ -155,10 +216,13 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                             ...fields.map((entry) {
                               final value = entry.value.toString();
                               return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       entry.key,
@@ -197,31 +261,35 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('ຢືນຢັນ'),
-                                  content:
-                                      const Text('ທ່ານຕ້ອງການຮັບບັດນີ້ແທ້ບໍ?'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text('ຍົກເລີກ'),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        _receiveTicket(code);
-                                      },
-                                      child: const Text('ຢືນຢັນ'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
+                      onPressed:
+                          _isLoading
+                              ? null
+                              : () {
+                                showDialog(
+                                  context: context,
+                                  builder:
+                                      (context) => AlertDialog(
+                                        title: const Text('ຢືນຢັນ'),
+                                        content: const Text(
+                                          'ທ່ານຕ້ອງການຮັບບັດນີ້ແທ້ບໍ?',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed:
+                                                () => Navigator.pop(context),
+                                            child: const Text('ຍົກເລີກ'),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                              _receiveTicket(code);
+                                            },
+                                            child: const Text('ຢືນຢັນ'),
+                                          ),
+                                        ],
+                                      ),
+                                );
+                              },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFD11C21),
                         foregroundColor: Colors.white,
@@ -233,12 +301,14 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      child: _isLoading
-                          ? const CircularProgressIndicator(
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
-                            )
-                          : const Text('ຮັບບັດ'),
+                      child:
+                          _isLoading
+                              ? const CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              )
+                              : const Text('ຮັບບັດ'),
                     ),
                   ),
                 ),
