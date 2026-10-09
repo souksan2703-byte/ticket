@@ -24,6 +24,7 @@ class _TicketPageState extends State<TicketPage> {
   }
 
   Future<void> _fetchTickets() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _error = null;
@@ -56,11 +57,14 @@ class _TicketPageState extends State<TicketPage> {
           final desc = (e['Title'] ?? e['Description'] ?? '')
               .toString()
               .trim();
-          final id = e['tickid'];
+          final id = e['tickid'] ?? e['TickID'] ?? e['tickId'];
+          final rawLogo = e['Logo'] ?? e['logo'] ?? e['logoUrl'] ??
+              e['image'] ?? e['imageUrl'];
           items.add(
             _TicketItem(
               tickid: id is int ? id : int.tryParse('$id'),
               description: desc,
+              imageUrl: ApiConfig.imageUrl(rawLogo),
             ),
           );
         }
@@ -126,7 +130,31 @@ class _TicketPageState extends State<TicketPage> {
                           horizontal: 16,
                           vertical: 8,
                         ),
-                        leading: const Icon(Icons.confirmation_number),
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: SizedBox(
+                            width: 64,
+                            height: 64,
+                            child: item.imageUrl != null
+                                ? Image.network(
+                                    item.imageUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        _ticketImageFallback(),
+                                    loadingBuilder: (context, child, progress) {
+                                      if (progress == null) return child;
+                                      return const Center(
+                                        child: SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : _ticketImageFallback(),
+                          ),
+                        ),
                         title: Text(
                           item.description?.isNotEmpty == true
                               ? item.description!
@@ -166,8 +194,22 @@ class _TicketPageState extends State<TicketPage> {
   }
 }
 
+Widget _ticketImageFallback() {
+  return Container(
+    color: Colors.grey.shade200,
+    alignment: Alignment.center,
+    child: Icon(
+      Icons.confirmation_number_outlined,
+      color: Colors.grey.shade600,
+      size: 30,
+    ),
+  );
+}
+
 class _TicketItem {
   final int? tickid;
   final String? description;
-  _TicketItem({this.tickid, this.description});
+  final String? imageUrl;
+
+  _TicketItem({this.tickid, this.description, this.imageUrl});
 }

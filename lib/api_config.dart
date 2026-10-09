@@ -9,6 +9,22 @@ class ApiConfig {
 
   static Uri url(String path) => Uri.parse('$baseUrl/$path');
 
+  /// Convert a stored logo path (for example /uploads/event.jpg) into a
+  /// full URL reachable by the scanner device.
+  static String? imageUrl(dynamic rawPath) {
+    final path = rawPath?.toString().trim() ?? '';
+    if (path.isEmpty) return null;
+
+    if (path.startsWith('https://') || path.startsWith('http://')) {
+      return path;
+    }
+
+    // baseUrl is .../api/public, while uploaded images are served from /uploads.
+    final serverBase = baseUrl.replaceFirst(RegExp(r'/api/public/?$'), '');
+    final normalizedPath = path.startsWith('/') ? path : '/$path';
+    return '$serverBase$normalizedPath';
+  }
+
   static bool isSuccess(dynamic status) {
     if (status == true || status == 1) return true;
     if (status is String) return status.toLowerCase() == 'true';
