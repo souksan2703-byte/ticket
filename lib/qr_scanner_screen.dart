@@ -58,7 +58,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
       // invalid / not_sold / already_used / error -> ແຈ້ງເຕືອນແລ້ວກັບໜ້າທຳອິດ
       _showResultDialog(
-        'message!!!',
+        'ແຈ້ງເຕືອນ!!!',
         decoded['message']?.toString() ?? 'ບໍ່ສາມາດກວດສອບຂໍ້ມູນ',
       );
     } catch (e) {
