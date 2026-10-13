@@ -29,7 +29,7 @@ class _TicketNotPageState extends State<TicketNotPage> {
   @override
   void initState() {
     super.initState();
-    // ดึงข้อมูลทั้ง 2 แท็บพร้อมกันตั้งแต่เปิดหน้ามา ไม่ต้องรอสลับแท็บถึงจะโหลด
+    // ມັນດຶງຂໍ້ມູນຈາກທັງ 2 ແຖບພ້ອມໆກັນນັບແຕ່ເວລາທີ່ໜ້າເວັບເປີດຂຶ້ນ, ໂດຍບໍ່ຕ້ອງລໍຖ້າເພື່ອປ່ຽນແຖບເພື່ອໂຫຼດ
     _fetchNotReceived();
     _fetchReceived();
   }
