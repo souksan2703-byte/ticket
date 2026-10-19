@@ -117,12 +117,30 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   Widget build(BuildContext context) {
     final data = widget.data;
     // ສະແດງສະເພາະຟິວທີ່ມີປະໂຫຍດກັບພະນັກງານໜ້າງານ (ຕັດຟິວທີ່ບໍ່ຈຳເປັນອອກ)
+
     final fields = <MapEntry<String, dynamic>>[
-      MapEntry('ລະຫັດບັດ', data['code'] ?? '-'),
-      MapEntry('ງານ', data['eventName'] ?? '-'),
-      MapEntry('ວັນທີ/ເວລາ', _formatEventDateTime(data['eventDate'])),
-      MapEntry('ສະຖານທີ່', data['eventLocation'] ?? '-'),
-      MapEntry('ເຈົ້າຂອງບັດ', data['owner'] ?? '-'),
+      MapEntry('Ticket ID', data['tickid'] ?? data['ticketId'] ?? '-'),
+      MapEntry('ລະຫັດຕົ໋ວ', data['code'] ?? data['ticketCode'] ?? '-'),
+      MapEntry('ຊື່ງານ', data['eventName'] ?? data['Title'] ?? '-'),
+      MapEntry(
+        'ວັນທີ/ເວລາ',
+        _formatEventDateTime(
+          data['eventDate'] ??
+              data['dateEvent'] ??
+              data['DateEvent'] ??
+              data['Day'],
+        ),
+      ),
+      MapEntry(
+        'ສະຖານທີ່',
+        data['eventLocation'] ?? data['location'] ?? data['Location'] ?? '-',
+      ),
+      MapEntry('ລາຄາ', data['price'] ?? data['Price'] ?? '-'),
+      MapEntry('ຜູ້ຮັບ/ຜູ້ຊື້', data['owner'] ?? data['Owner'] ?? '-'),
+      MapEntry(
+        'ເວລາຂາຍບັດ',
+        _formatEventDateTime(data['soldAt'] ?? data['soldat']),
+      ),
     ];
 
     // ມາຮອດໜ້ານີ້ໄດ້ໝາຍວ່າ check-ticket ຕອບ result 'ok' ແລ້ວ (ຂາຍແລ້ວ ຍັງບໍ່ຮັບ)
@@ -202,9 +220,11 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                               ),
                             ),
                             const SizedBox(height: 14),
-                            const Text(
-                              'ພົບຂໍ້ມູນບັດ',
-                              style: TextStyle(
+                            Text(
+                              data['status']?.toString() == 'Used'
+                                  ? 'ຕົ໋ວຖືກຮັບໄປແລ້ວ!'
+                                  : 'ພົບຂໍ້ມູນບັດ',
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black87,
