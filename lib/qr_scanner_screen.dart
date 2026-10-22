@@ -100,201 +100,186 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     );
   }
 
-  Future<void> _showAlreadyUsedDialog(
-  Map<String, dynamic> ticket,
-) async {
-  String valueOf(dynamic value) {
-    if (value == null || value.toString().trim().isEmpty) {
-      return '-';
-    }
-    return value.toString();
-  }
-
-  dynamic firstValue(List<String> keys) {
-    for (final key in keys) {
-      final value = ticket[key];
-      if (value != null && value.toString().trim().isNotEmpty) {
-        return value;
+  Future<void> _showAlreadyUsedDialog(Map<String, dynamic> ticket) async {
+    String valueOf(dynamic value) {
+      if (value == null || value.toString().trim().isEmpty) {
+        return '-';
       }
-    }
-    return null;
-  }
-
-  String formatDate(dynamic value) {
-    if (value == null || value.toString().trim().isEmpty) {
-      return '-';
-    }
-
-    try {
-      final date = DateTime.parse(value.toString()).toLocal();
-      String two(int n) => n.toString().padLeft(2, '0');
-
-      return '${two(date.day)}/${two(date.month)}/${date.year} '
-          '${two(date.hour)}:${two(date.minute)}';
-    } catch (_) {
       return value.toString();
     }
-  }
 
-  Widget detail(String label, dynamic value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 9),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 4,
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 14,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 6,
-            child: Text(
-              valueOf(value),
-              textAlign: TextAlign.right,
-              style: const TextStyle(
-                color: Color(0xFF273451),
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    dynamic firstValue(List<String> keys) {
+      for (final key in keys) {
+        final value = ticket[key];
+        if (value != null && value.toString().trim().isNotEmpty) {
+          return value;
+        }
+      }
+      return null;
+    }
 
-  await showDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (dialogContext) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
-        ),
-        contentPadding: const EdgeInsets.fromLTRB(22, 24, 22, 8),
-        content: SizedBox(
-          width: 420,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 76,
-                  height: 76,
-                  decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.10),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.verified,
-                    color: Colors.red,
-                    size: 58,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                const Text(
-                  'ຕົ໋ວຖືກຮັບໄປແລ້ວ!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  valueOf(firstValue([
-                    'eventName',
-                    'Title',
-                    'title',
-                  ])),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFF273451),
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Divider(),
-                detail(
-                  'Ticket ID',
-                  firstValue(['tickid', 'ticketId', 'id']),
-                ),
-                detail(
-                  'Ticket Code',
-                  firstValue(['code', 'ticketCode']),
-                ),
-                detail(
-                  'ຜູ້ຊື້ / ຜູ້ຮັບ',
-                  firstValue(['owner', 'customerName', 'phone']),
-                ),
-                detail(
-                  'ລາຄາ',
-                  firstValue(['price', 'amount']) == null
-                      ? '-'
-                      : '${valueOf(firstValue(['price', 'amount']))} LAK',
-                ),
-                detail(
-                  'ສະຖານທີ່',
-                  firstValue([
-                    'eventLocation',
-                    'location',
-                    'Location',
-                  ]),
-                ),
-                detail(
-                  'ວັນເວລາຂາຍຕົ໋ວ',
-                  formatDate(firstValue([
-                    'soldAt',
-                    'saleDate',
-                    'createdAt',
-                  ])),
-                ),
-                detail(
-                  'ວັນເວລາຮັບຕົ໋ວ',
-                  formatDate(firstValue([
-                    'receivedAt',
-                    'getTicket_date',
-                    'getTicketDate',
-                  ])),
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-            },
-            child: const Text(
-              'OK',
-              style: TextStyle(
-                color: Colors.red,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+    String formatDate(dynamic value) {
+      if (value == null || value.toString().trim().isEmpty) {
+        return '-';
+      }
+
+      try {
+        final date = DateTime.parse(value.toString()).toLocal();
+        String two(int n) => n.toString().padLeft(2, '0');
+
+        return '${two(date.day)}/${two(date.month)}/${date.year} '
+            '${two(date.hour)}:${two(date.minute)}';
+      } catch (_) {
+        return value.toString();
+      }
+    }
+
+    Widget detail(String label, dynamic value) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 9),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 4,
+              child: Text(
+                label,
+                style: const TextStyle(color: Colors.grey, fontSize: 14),
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 6,
+              child: Text(
+                valueOf(value),
+                textAlign: TextAlign.right,
+                style: const TextStyle(
+                  color: Color(0xFF273451),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
       );
-    },
-  );
+    }
 
-  if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
 
-  // ເປີດກ້ອງສະແກນຄືນ
-  isScanning = true;
-  await cameraController.start();
-}
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 20,
+          ),
+
+          contentPadding: const EdgeInsets.fromLTRB(22, 24, 22, 8),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 76,
+                    height: 76,
+                    decoration: BoxDecoration(
+                      color: Colors.red.withValues(alpha: 0.10),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.verified,
+                      color: Colors.red,
+                      size: 58,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'ຕົ໋ວຖືກຮັບໄປແລ້ວ!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    valueOf(firstValue(['eventName', 'Title', 'title'])),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Color(0xFF273451),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Divider(),
+                  detail('Ticket ID', firstValue(['tickid', 'ticketId', 'id'])),
+                  detail('Ticket Code', firstValue(['code', 'ticketCode'])),
+                  detail(
+                    'ຜູ້ຊື້ / ຜູ້ຮັບ',
+                    firstValue(['owner', 'customerName', 'phone']),
+                  ),
+                  detail(
+                    'ລາຄາ',
+                    firstValue(['price', 'amount']) == null
+                        ? '-'
+                        : '${valueOf(firstValue(['price', 'amount']))} LAK',
+                  ),
+                  detail(
+                    'ສະຖານທີ່',
+                    firstValue(['eventLocation', 'location', 'Location']),
+                  ),
+                  detail(
+                    'ວັນເວລາຂາຍຕົ໋ວ',
+                    formatDate(firstValue(['soldAt', 'saleDate', 'createdAt'])),
+                  ),
+                  detail(
+                    'ວັນເວລາຮັບຕົ໋ວ',
+                    formatDate(
+                      firstValue([
+                        'receivedAt',
+                        'getTicket_date',
+                        'getTicketDate',
+                      ]),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted) return;
+
+    // ເປີດກ້ອງສະແກນຄືນ
+    isScanning = true;
+    await cameraController.start();
+  }
 
   void _onBarcodeDetected(BarcodeCapture capture) {
     if (!isScanning) return;
